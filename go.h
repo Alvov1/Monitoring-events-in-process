@@ -41,7 +41,7 @@ static void Inject(DWORD pId, const std::filesystem::path& path) {
     CloseHandle(process);
 }
 
-static void Monitoring(DWORD pId, const std::string& function) {
+static int Monitoring(DWORD pId, const std::string& function) {
     initPipe();
 
     if(!std::filesystem::exists(LibraryPath))
@@ -56,9 +56,9 @@ static void Monitoring(DWORD pId, const std::string& function) {
     const auto data = "-func " + function;
     std::cout << "[+] Sending data to pipe." << std::endl;
 
-    DWORD numBytesWriten = 0;
-    if(WriteFile(pipe, data.c_str(), data.size(), &numBytesWriten, nullptr))
-        std::cout << "[+] Sent " + std::to_string(numBytesWriten) + "." << std::endl;
+    DWORD bytesWritten = 0;
+    if(WriteFile(pipe, data.c_str(), data.size(), &bytesWritten, nullptr))
+        std::cout << "[+] Sent " + std::to_string(bytesWritten) + "." << std::endl;
     else
         throw std::runtime_error("[-] Failed to send data.");
 
@@ -77,8 +77,10 @@ static void Monitoring(DWORD pId, const std::string& function) {
 
     CloseHandle(pipe);
     std::cout << "[+] Done." << std::endl;
+
+    return 0;
 }
-static void Hiding(DWORD pId, const std::filesystem::path& path) {
+static int Hiding(DWORD pId, const std::filesystem::path& path) {
     initPipe();
 
     if(!std::filesystem::exists(LibraryPath))
@@ -93,13 +95,15 @@ static void Hiding(DWORD pId, const std::filesystem::path& path) {
     const std::string data("-hide " + path.string());
     std::cout << "[+] Sending data to pipe." << std::endl;
 
-    DWORD numBytesWriten = 0;
-    if(WriteFile(pipe, data.c_str(), data.size(), &numBytesWriten, nullptr))
-        std::cout << "[+] Sent " + std::to_string(numBytesWriten) + "." << std::endl;
+    DWORD bytesWritten = 0;
+    if(WriteFile(pipe, data.c_str(), data.size(), &bytesWritten, nullptr))
+        std::cout << "[+] Sent " + std::to_string(bytesWritten) + "." << std::endl;
     else
         throw std::runtime_error("[-] Failed to send data.");
 
     thread.detach();
+
+    return 0;
 };
 
 #endif //PROJECT_GO_H
