@@ -5,6 +5,8 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
+#include "go.h"
+
 static inline int help() {
     static constexpr auto info = "Usage:\n-pid 123 -func CreateFile\n"
     "-pid 123 -hide C:\\hello.txt\n-name explorer.exe -func CreateFile\n"
@@ -40,8 +42,9 @@ int main(int argc, const char** argv) {
     const std::string action(argv[3]);
     const std::string argument(argv[4]);
 
+    DWORD pId = 0;
     if(processIdType == "-pid") {
-        const auto pId = static_cast<DWORD>(std::stoi(secondArg));
+        pId = static_cast<DWORD>(std::stoi(secondArg));
         std::cout << "Tracking proc with id " << pId << "." << std::endl;
 
         HANDLE proc = nullptr;
@@ -52,10 +55,14 @@ int main(int argc, const char** argv) {
     } else if(processIdType == "-name") {
         std::cout << "Tracking process " << secondArg << "." << std::endl;
 
-        for(DWORD pId = getProcessByName(secondArg); pId == 0; pId = getProcessByName(secondArg))
+        for(pId = getProcessByName(secondArg); pId == 0; pId = getProcessByName(secondArg))
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
     } else return help();
 
-    return 0;
+    if(action == "-func")
+        return Monitoring(pId, argument);
+    if(action == "-hide")
+        return Hiding(pId, argument);
+    return help();
 }
